@@ -12,7 +12,11 @@ export function activate(context: ExtensionContext) {
 	const yeomanCommand = 'yeoman.yeoman';
 	const yoCommand = 'yeoman.yo';
 
-	const commandHandler = (currentFolderUri: Uri) => {
+	/**
+	 * @param currentFolderUri allow to 
+	 * @param generator 
+	 */
+	const commandHandler = (currentFolderUri?: Uri, generator?: QuickPickItem) => {
 		let cwd = currentFolderUri ? currentFolderUri.fsPath : workspace.rootPath;
 		if (!cwd) {
 			window.showErrorMessage('Please open a workspace directory first.');
@@ -22,11 +26,22 @@ export function activate(context: ExtensionContext) {
 		const yo = new Yeoman({cwd});
 		let main;
 		let sub;
-
-		Promise.resolve(window.showQuickPick(list(yo), { 
-			placeHolder: 'Select one of the available Yeoman generators below.', 
-			ignoreFocusOut: true
-		})).then((generator: any) => {
+		let generatorPromise: Promise<QuickPickItem>;
+		if (generator) {
+			generatorPromise = new Promise((resolve, reject) => {
+				setImmediate(() => {
+					yo.getEnvironment().lookup(() => {
+						resolve(generator);
+					});
+				});
+			})
+		} else {
+			generatorPromise = Promise.resolve(window.showQuickPick(list(yo), { 
+				placeHolder: 'Select one of the available Yeoman generators below.', 
+				ignoreFocusOut: true
+			}));
+		}
+		generatorPromise.then((generator: any) => {
 				if (generator === undefined) {
 					throw new EscapeException();
 				}

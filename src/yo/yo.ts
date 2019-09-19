@@ -96,25 +96,7 @@ export default class Yeoman {
 			Promise.resolve(window.showQuickPick(new Promise((res, rej) => {
 				setImmediate(() => {
 					try {
-						this._env.run(generator, this.done)
-							.on('npmInstall', () => {
-								this.setState('install node dependencies');
-							})
-							.on('bowerInstall', () => {
-								this.setState('install bower dependencies');
-							})
-							.on('error', err => {
-								if (!(err instanceof EscapeException)) {
-									window.showErrorMessage(err.message);
-									throw err;
-								}
-							})
-							.on('end', () => {
-								this.clearState();
-								console.log(`${EOL}${figures.tick} done`);
-							});
-
-						resolve();
+						this._env.run(generator, this.done).then(() => resolve());
 					} catch (err) {
 						reject(err);
 					}
